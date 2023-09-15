@@ -61,14 +61,16 @@ SELECT k.CustomerId, k.FirstName, k.LastName, COUNT(*)
 
 
 
-SELECT DISTINCT cteLinea.CustomerId, cteLinea.FirstName, cteLinea.LastName, t.Name, cteLinea.InvoiceId, cteLinea.InvoiceLineId, g.GenreId
-            FROM (SELECT c.CustomerId, c.FirstName, c.LastName, il.TrackId, i.InvoiceId, il.InvoiceLineId
-                  FROM Customer c
-                  INNER JOIN Invoice i ON i.CustomerId = c.CustomerId
-                  INNER JOIN InvoiceLine il ON il.InvoiceId = i.InvoiceId) cteLinea
-            INNER join Track t ON t.TrackId = cteLinea.TrackId
-            INNER join Genre g ON t.GenreId = g.GenreId
-ORDER BY cteLinea.CustomerId
+    (SELECT DISTINCT cteLinea.CustomerId, cteLinea.FirstName, cteLinea.LastName, t.Name, cteLinea.InvoiceId, cteLinea.InvoiceLineId, g.GenreId
+                FROM (SELECT c.CustomerId, c.FirstName, c.LastName, il.TrackId, i.InvoiceId, il.InvoiceLineId
+                      FROM Customer c
+                      INNER JOIN Invoice i ON i.CustomerId = c.CustomerId
+                      INNER JOIN InvoiceLine il ON il.InvoiceId = i.InvoiceId) cteLinea
+                INNER join Track t ON t.TrackId = cteLinea.TrackId
+                INNER join Genre g ON t.GenreId = g.GenreId
+    ORDER BY cteLinea.CustomerId) 
+
+
 /*
  */
  
