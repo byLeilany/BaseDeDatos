@@ -71,21 +71,20 @@ ORDER BY COUNT(*)
 */
 
 -- 2.5)
+/*
 CREATE TABLE [Actor]
 (
     [idActor] INTEGER  NOT NULL,
     [nombreActor] NVARCHAR(160)  NOT NULL,
     [edad] INTEGER  NOT NULL,
-    CONSTRAINT [PK_Actor] PRIMARY KEY  ([idActor]),
-		ON DELETE NO ACTION ON UPDATE NO ACTION
+    CONSTRAINT [PK_Actor] PRIMARY KEY  ([idActor])
 );
 
 CREATE TABLE [Genero]
 (
     [idGenero] INTEGER  NOT NULL,
     [nombreGenero] NVARCHAR(160)  NOT NULL,
-    CONSTRAINT [PK_Genero] PRIMARY KEY  ([idGenero]),
-		ON DELETE NO ACTION ON UPDATE NO ACTION
+    CONSTRAINT [PK_Genero] PRIMARY KEY  ([idGenero])
 );
 
 CREATE TABLE [Serie]
@@ -96,7 +95,6 @@ CREATE TABLE [Serie]
   	[aInicio] DATE  NOT NULL,
   	[aFin] DATE  NOT NULL,
     CONSTRAINT [PK_Serie] PRIMARY KEY  ([idSerie]),
-  			   [aInicio] < [aFin],
     FOREIGN KEY ([idGenero]) REFERENCES [Genero] ([idGenero]) 
 		ON DELETE NO ACTION ON UPDATE NO ACTION
 );
@@ -105,8 +103,7 @@ CREATE TABLE [Canal]
 (
     [idCanal] INTEGER  NOT NULL,
     [nombreCanal] NVARCHAR(160)  NOT NULL,
-    CONSTRAINT [PK_Canal] PRIMARY KEY  ([idCanal]),
-		ON DELETE NO ACTION ON UPDATE NO ACTION
+    CONSTRAINT [PK_Canal] PRIMARY KEY  ([idCanal])
 );
 
 CREATE TABLE [ParticipaEn]
@@ -131,8 +128,159 @@ CREATE TABLE [ParticipaEn]
     FOREIGN KEY ([idSerie]) REFERENCES [Serie] ([idSerie]) 
 		ON DELETE NO ACTION ON UPDATE NO ACTION
 );
- 
- 
 
-    
-    
+INSERT INTO [Actor] ([idActor], [nombreActor], [edad]) VALUES (1, 'Ryan Gosling', 42);
+INSERT INTO [Actor] ([idActor], [nombreActor], [edad]) VALUES (2, 'Emma Stone', 34);
+INSERT INTO [Actor] ([idActor], [nombreActor], [edad]) VALUES (3, 'Margot Robbie', 33);
+INSERT INTO [Actor] ([idActor], [nombreActor], [edad]) VALUES (4, 'Timothée Chalamet', 27);
+
+
+INSERT INTO [Genero] ([idGenero], [nombreGenero]) VALUES (1, '<3');
+INSERT INTO [Genero] ([idGenero], [nombreGenero]) VALUES (2, 'jajas');
+
+INSERT INTO [Canal] ([idCanal], [nombreCanal]) VALUES (1, 'Canal 13');
+INSERT INTO [Canal] ([idCanal], [nombreCanal]) VALUES (2, 'TNT');
+
+INSERT INTO [Serie] ([idSerie], [nombreSerie], [idGenero], [aInicio], [aFin]) VALUES (1, 'La La Land', 1, '2014-06-05', '2019-12-09');
+INSERT INTO [Serie] ([idSerie], [nombreSerie], [idGenero], [aInicio], [aFin]) VALUES (2, 'Crazy, Stupid, Love', 2, '2011-03-08', '2011-07-29');
+INSERT INTO [Serie] ([idSerie], [nombreSerie], [idGenero], [aInicio], [aFin]) VALUES (3, 'Barbie', 2, '2009-01-01', '2023-07-20');
+INSERT INTO [Serie] ([idSerie], [nombreSerie], [idGenero], [aInicio], [aFin]) VALUES (4, 'Paper Man', 2, '2009-01-01', '2009-01-01');
+INSERT INTO [Serie] ([idSerie], [nombreSerie], [idGenero], [aInicio], [aFin]) VALUES (5, 'Paper Man', 2, '2012-01-01', '2012-01-01');
+
+
+INSERT INTO [ParticipaEn] ([idActor], [idSerie]) VALUES (1, 1);
+INSERT INTO [ParticipaEn] ([idActor], [idSerie]) VALUES (1, 2);
+INSERT INTO [ParticipaEn] ([idActor], [idSerie]) VALUES (2, 1);
+INSERT INTO [ParticipaEn] ([idActor], [idSerie]) VALUES (2, 2);
+INSERT INTO [ParticipaEn] ([idActor], [idSerie]) VALUES (3, 3);
+INSERT INTO [ParticipaEn] ([idActor], [idSerie]) VALUES (3, 3);
+INSERT INTO [ParticipaEn] ([idActor], [idSerie]) VALUES (2, 4);
+
+
+
+INSERT INTO [Transmite] ([idCanal], [idSerie]) VALUES (1, 3);
+INSERT INTO [Transmite] ([idCanal], [idSerie]) VALUES (1, 1);
+INSERT INTO [Transmite] ([idCanal], [idSerie]) VALUES (1, 2);
+INSERT INTO [Transmite] ([idCanal], [idSerie]) VALUES (1, 3);
+*/
+
+-- a)
+/*
+SELECT ac.nombreActor FROM
+    (SELECT a.idActor, a.nombreActor
+    FROM Actor a
+    WHERE a.edad > 35) ac
+    INNER JOIN ParticipaEn pe ON pe.idActor = ac.idActor
+    INNER JOIN Serie s ON s.idSerie = pe.idSerie
+	WHERE s.nombreSerie = 'La La Land'
+*/
+
+-- b)
+/*
+SELECT eso.idCanal, eso.nombreCanal, COUNT(*) as 'cantSeriesJajas'
+FROM (select c.idCanal, c.nombreCanal, g.idGenero
+      from Canal c
+      INNER JOIN Transmite t On t.idCanal = c.idCanal
+      INNER JOIN Serie s ON s.idSerie = t.idSerie
+      INNER JOIN Genero g ON g.idGenero = s.idGenero
+      WHERE g.idGenero = 2) eso
+GROUP BY eso.idCanal, eso.nombreCanal
+HAVING COUNT(*) = (SELECT COUNT(*) as 'cantPelis' FROM Serie s WHERE s.idGenero = 2)
+*/
+
+-- c)
+/*
+SELECT a.nombreActor 
+from Actor a
+INNER JOIN ParticipaEn p ON p.idActor = a.idActor
+INNER JOIN Serie s ON s.idSerie = p.idSerie
+WHERE s.aFin >= '2020-01-01' AND a.nombreActor in (SELECT ac.nombreActor FROM
+                                                      (SELECT a.idActor, a.nombreActor
+                                                      FROM Actor a
+                                                      WHERE a.edad > 30) ac
+                                                      INNER JOIN ParticipaEn pe ON pe.idActor = ac.idActor
+                                                      INNER JOIN Serie s ON s.idSerie = pe.idSerie
+                                                      WHERE s.nombreSerie = 'La La Land') 
+*/
+-- d)
+/*
+SELECT * from Actor a
+where a.nombreActor NOT IN (SELECT a.nombreActor
+                            from Actor a
+                            INNER JOIN ParticipaEn p ON p.idActor = a.idActor
+                            INNER JOIN Serie s ON s.idSerie = p.idSerie
+                            WHERE s.aFin >= '2020-01-01')
+                     AND a.nombreActor in (SELECT ac.nombreActor FROM
+                                                      (SELECT a.idActor, a.nombreActor
+                                                      FROM Actor a
+                                                      WHERE a.edad > 30) ac
+                                                      INNER JOIN ParticipaEn pe ON pe.idActor = ac.idActor
+                                                      INNER JOIN Serie s ON s.idSerie = pe.idSerie
+                                                      WHERE s.nombreSerie = 'La La Land') 
+*/
+
+-- e)
+/*
+select s.idSerie
+    from Serie s
+    WHERE s.ainicio = (select MIN( s.ainicio ) from Serie s)
+*/
+
+-- f)
+/*
+SELECT p.idActor 
+FROM (SELECT k.idActor, COUNT(*) AS 'cantSeries'
+       FROM (SELECT a.idActor, p.idSerie
+                FROM Actor a
+                INNER JOIN ParticipaEn p ON p.idActor = a.idActor) k
+      GROUP BY k.idActor
+      HAVING cantSeries >= 2) p
+*/
+-- g)
+/*
+SELECT p.idSerie 
+	FROM (SELECT s.idSerie, s.nombreSerie FROM Serie s) p
+    GROUP by p.nombreSerie
+	HAVING COUNT(p.nombreSerie) >= 2
+*/
+
+-- h)
+/*
+SELECT c.nombreCanal
+	FROM Canal c
+	INNER JOIN Transmite t ON t.idCanal = c.idCanal
+	WHERE t.idSerie IN (SELECT p.idSerie 
+                            FROM (SELECT s.idSerie, s.nombreSerie FROM Serie s) p
+                            GROUP by p.nombreSerie
+                            HAVING COUNT(p.nombreSerie) >= 2)
+*/
+
+--i)
+/*
+SELECT k.idSerie, k.nombreSerie
+FROM (SELECT s.idSerie, s.nombreSerie, AVG (edad) as 'avgEdad'
+        FROM Serie s
+        INNER JOIN ParticipaEn pe ON pe.idSerie = s.idSerie
+        INNER JOIN Actor a ON a.idActor = pe.idActor
+        GROUP BY s.idSerie, s.nombreSerie) k
+WHERE k.avgEdad = (SELECT MAX( kDos.avgEdad ) 
+                  FROM (SELECT s.idSerie, s.nombreSerie, AVG (edad) as 'avgEdad'
+                          FROM Serie s
+                          INNER JOIN ParticipaEn pe ON pe.idSerie = s.idSerie
+                          INNER JOIN Actor a ON a.idActor = pe.idActor
+                          GROUP BY s.idSerie, s.nombreSerie) kDos)
+*/
+
+-- j)
+/*
+SELECT g.idGenero, g.nombreGenero 
+    FROM Genero g
+    INNER JOIN Serie s ON s.idGenero = g.idGenero
+    INNER JOIN ParticipaEn pe ON pe.idSerie = s.idSerie
+	INNER JOIN Actor a ON a.idActor = pe.idActor
+    WHERE a.edad = (SELECT MIN (a.edad)	FROM Actor a)
+*/
+
+
+
+
