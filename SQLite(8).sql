@@ -424,7 +424,7 @@ WHERE p.fechaBorn >= m.fechaRealizacion AND p.fechaBorn <= m.fechaFin
 */
 
 -- 2.8)
-/*
+/* (<3 d Amigo es simetrica.)
 Miembro (nombrePersona, nombreGrupo)
 Amigo (nombrePersona1,nombrePersona2)
 Persona (nombrePersona, edad, genero)
@@ -432,11 +432,35 @@ Grupo (nombreGrupo, fechaInicio)
 */
 --(a) Obtener, en SQL, para cada persona los grupos en los cuales el no es miembro pero todos sus amigos si son miembros. 
 --La consulta debe devolver tuplas con (nombrePersona, nombreGrupo) donde nombreGrupo es el nombre del grupo que cumple 
---con loque se pide.
+--con lo que se pide.
+/*
+SELECT a.nombrePersona1, m.nombreGrupo, COUNT(nombrePersona2) as 'cantAmigosEnGrupo'
+FROM (SELECT a.nombrePersona1, a.nombrePersona2 FROM Amigo a
+      UNION 
+      SELECT a.nombrePersona2 AS 'nombrePersona1', a.nombrePersona1 AS 'nombrePersona2' FROM Amigo a) k
+LEFT JOIN  Miembro m ON m.nombrePersona, = k.nombrePersona2
+GROUP BY a.nombrePersona1
+WHERE m.nombreGrupo NOT IN (SELECT * FROM Grupo gDos 
+                            inner JOIN Miembro me ON gDos.nombreGrupo = me.nombreGrupo
+                            where me.nombrePersona = a.nombrePersona1)
+HAVING (a.nombrePersona1, COUNT(nombrePersona2)) = (SELECT q.nombrePersona1, COUNT(q.nombrePersona2) FROm (SELECT a.nombrePersona1, a.nombrePersona2 FROM Amigo a
+                                                                                                          UNION 
+                                                                                                          SELECT a.nombrePersona2 AS 'nombrePersona1', a.nombrePersona1 AS 'nombrePersona2' FROM Amigo a) q) 
+*//*
+-- 2.9)
+--Historia (idItem, fecha guardado, precio)
+--Items (idItem, nombre, precioActual, categoriaId)
+(a) Realizar en SQL: Una consulta que devuelva el precio historico promedio de los items
+de categoriaId=1 al 1/7/1999 */
+/*
+SELECT h.idItem, , AVG(h.precio)
+FROM Historia h
+INNER JOIN Items i ON i.idItem = h.idItem
+WHERE i.categproaId = 1 AND h.fecha >= '1999/07/01'
+GROUP BY h.idItem
+*/
 
 
-              
-         
 
 
 
